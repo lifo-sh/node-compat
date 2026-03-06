@@ -1,0 +1,33 @@
+{
+  "name": "stories",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:node": "vitest run --config vitest.config.ts",
+    "test:browser": "vitest run --config vitest.browser.config.ts"
+  },
+  "dependencies": {
+    "@lifo-sh/vfs": "workspace:*",
+    "@lifo-sh/node-compat": "workspace:*"
+  },
+  "devDependencies": {
+    "@vitest/browser": "^3.2.1",
+    "playwright": "^1.52.0",
+    "tsup": "^8.0.0",
+    "vitest": "^3.2.1"
+  }
+}

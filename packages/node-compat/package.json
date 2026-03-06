@@ -1,0 +1,92 @@
+{
+  "name": "@lifo-sh/node-compat",
+  "version": "0.1.0",
+  "description": "Node.js API compatibility layer for browsers",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./fs": {
+      "types": "./dist/fs.d.ts",
+      "import": "./dist/fs.js",
+      "require": "./dist/fs.cjs"
+    },
+    "./fs/promises": {
+      "types": "./dist/fs/promises.d.ts",
+      "import": "./dist/fs/promises.js",
+      "require": "./dist/fs/promises.cjs"
+    },
+    "./path": {
+      "types": "./dist/path.d.ts",
+      "import": "./dist/path.js",
+      "require": "./dist/path.cjs"
+    },
+    "./events": {
+      "types": "./dist/events.d.ts",
+      "import": "./dist/events.js",
+      "require": "./dist/events.cjs"
+    },
+    "./buffer": {
+      "types": "./dist/buffer.d.ts",
+      "import": "./dist/buffer.js",
+      "require": "./dist/buffer.cjs"
+    },
+    "./process": {
+      "types": "./dist/process.d.ts",
+      "import": "./dist/process.js",
+      "require": "./dist/process.cjs"
+    },
+    "./util": {
+      "types": "./dist/util.d.ts",
+      "import": "./dist/util.js",
+      "require": "./dist/util.cjs"
+    },
+    "./timers": {
+      "types": "./dist/timers.d.ts",
+      "import": "./dist/timers.js",
+      "require": "./dist/timers.cjs"
+    },
+    "./assert": {
+      "types": "./dist/assert.d.ts",
+      "import": "./dist/assert.js",
+      "require": "./dist/assert.cjs"
+    },
+    "./os": {
+      "types": "./dist/os.d.ts",
+      "import": "./dist/os.js",
+      "require": "./dist/os.cjs"
+    },
+    "./stream": {
+      "types": "./dist/stream.d.ts",
+      "import": "./dist/stream.js",
+      "require": "./dist/stream.cjs"
+    },
+    "./url": {
+      "types": "./dist/url.d.ts",
+      "import": "./dist/url.js",
+      "require": "./dist/url.cjs"
+    },
+    "./crypto": {
+      "types": "./dist/crypto.d.ts",
+      "import": "./dist/crypto.js",
+      "require": "./dist/crypto.cjs"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "dependencies": {
+    "@lifo-sh/vfs": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0"
+  }
+}

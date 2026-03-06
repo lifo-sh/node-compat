@@ -1,0 +1,19 @@
+{
+  "name": "node-compat-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r run build",
+    "dev": "pnpm -r run dev --parallel",
+    "dev:vite": "pnpm --filter vite-react-app run dev",
+    "dev:cli": "pnpm --filter cli-app run dev",
+    "test": "pnpm --filter stories run test",
+    "test:node": "pnpm --filter stories run test:node",
+    "test:browser": "pnpm --filter stories run test:browser"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

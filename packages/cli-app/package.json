@@ -1,0 +1,19 @@
+{
+  "name": "cli-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@lifo-sh/vfs": "workspace:*",
+    "@lifo-sh/node-compat": "workspace:*",
+    "stories": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "tsup": "^8.0.0"
+  }
+}
