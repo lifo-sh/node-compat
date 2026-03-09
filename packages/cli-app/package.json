@@ -8,7 +8,7 @@
     "build": "tsup"
   },
   "dependencies": {
-    "@lifo-sh/vfs": "workspace:*",
+    "@lifo-sh/vfs": "file:../../../lifo-vfs/packages/vfs",
     "@lifo-sh/node-compat": "workspace:*",
     "stories": "workspace:*"
   },

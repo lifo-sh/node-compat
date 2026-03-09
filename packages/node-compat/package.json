@@ -84,7 +84,7 @@
     "dev": "tsup --watch"
   },
   "dependencies": {
-    "@lifo-sh/vfs": "workspace:*"
+    "@lifo-sh/vfs": "file:../../../lifo-vfs/packages/vfs"
   },
   "devDependencies": {
     "tsup": "^8.0.0"

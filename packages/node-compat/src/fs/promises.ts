@@ -1,4 +1,4 @@
-import { createVFS, type VFS, type VFSStat } from "@lifo-sh/vfs";
+import { createVFS, MemoryBackend, type VFS, type VFSStat } from "@lifo-sh/vfs";
 
 type Encoding = "utf-8" | "utf8" | "ascii" | "base64" | "hex" | "latin1" | "binary" | "ucs2" | "ucs-2" | "utf16le" | null;
 
@@ -16,7 +16,7 @@ let vfsRef: VFS | null = null;
 
 function getVFS(): VFS {
   if (vfsRef) return vfsRef;
-  vfsRef = createVFS();
+  vfsRef = createVFS({ backend: new MemoryBackend() });
   return vfsRef;
 }
 

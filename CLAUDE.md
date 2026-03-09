@@ -4,18 +4,18 @@ A monorepo that polyfills Node.js core APIs for the browser using a Virtual File
 
 ## Packages
 
-- `packages/vfs` (`@lifo-sh/vfs`) - Standalone VFS with swappable backends (MemoryBackend, future: IndexedDB, NodeFS)
 - `packages/node-compat` (`@lifo-sh/node-compat`) - Node.js API compatibility layer wrapping VFS. Exports `fs`, `fs/promises`, `path`.
 - `packages/stories` (`stories`) - Shared test stories consumed by both playground apps
 - `packages/vite-react-app` - Browser playground with dashboard UI (Tailwind + shadcn, dark mode)
 - `packages/cli-app` - CLI playground with interactive two-level menu
+
+**External dependency:** `@lifo-sh/vfs` is consumed from the sibling `lifo-vfs` repo (via `file:` protocol).
 
 ## Commands
 
 - `pnpm build` - Build all packages
 - `pnpm dev:vite` - Run the Vite playground
 - `pnpm dev:cli` - Run the CLI playground
-- `pnpm --filter @lifo-sh/vfs run build` - Build VFS only
 - `pnpm --filter @lifo-sh/node-compat run build` - Build node-compat only
 - `pnpm test` - Run all tests (Node)
 - `pnpm test:node` - Run tests in Node environment
@@ -37,12 +37,9 @@ node-compat/path  (pure implementation, no VFS dependency)
 When asked to implement a new Node.js API (e.g., "implement fs.appendFile" or "implement the buffer module"):
 
 ### Step 1: Check if VFS needs changes
-- Read `packages/vfs/src/types.ts` to see the `VFSBackend` interface
-- If the new API needs a new VFS operation (e.g., `appendFile` needs an `appendFile` backend method):
-  1. Add the method to the `VFSBackend` interface in `types.ts`
-  2. Implement the sync variant in `packages/vfs/src/memory.ts` (MemoryBackend)
-  3. Add the async wrapper in `packages/vfs/src/memory.ts`
-  4. Wire it through `packages/vfs/src/index.ts` (the `createVFS` function) with event emission
+- VFS lives in the sibling `lifo-vfs` repo (`../lifo-vfs/packages/vfs/`)
+- Read `lifo-vfs/packages/vfs/src/types.ts` to see the `VFSBackend` interface
+- If the new API needs a new VFS operation, make changes in the `lifo-vfs` repo first
 - If the API is pure (like `path` functions), skip this step
 
 ### Step 2: Implement in node-compat
@@ -68,7 +65,7 @@ When asked to implement a new Node.js API (e.g., "implement fs.appendFile" or "i
 - Both the Vite app and CLI app consume from this shared package automatically
 
 ### Step 4: Build and verify
-- Run `pnpm --filter @lifo-sh/vfs run build` (if VFS changed)
+- If VFS changed, build it first: `cd ../lifo-vfs && pnpm --filter @lifo-sh/vfs run build`
 - Run `pnpm --filter @lifo-sh/node-compat run build`
 - Run `pnpm --filter stories run build`
 - Run `pnpm test:node` to verify all tests pass in Node
@@ -77,6 +74,6 @@ When asked to implement a new Node.js API (e.g., "implement fs.appendFile" or "i
 
 ### Naming conventions
 - Package names: `@lifo-sh/vfs`, `@lifo-sh/node-compat`
-- VFS errors use `createENOENT`, `createEEXIST`, etc. from `packages/vfs/src/errors.ts`
+- VFS errors use `createENOENT`, `createEEXIST`, etc. from `@lifo-sh/vfs`
 - Encoding type is defined locally (not using Node's `BufferEncoding`) to avoid Node type dependencies
 - Libraries must work in both browser and Node - no Node-only globals without feature detection

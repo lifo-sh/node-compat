@@ -18,8 +18,8 @@ importers:
         specifier: workspace:*
         version: link:../node-compat
       '@lifo-sh/vfs':
-        specifier: workspace:*
-        version: link:../vfs
+        specifier: file:../../../lifo-vfs/packages/vfs
+        version: file:../lifo-vfs/packages/vfs
       stories:
         specifier: workspace:*
         version: link:../stories
@@ -34,8 +34,8 @@ importers:
   packages/node-compat:
     dependencies:
       '@lifo-sh/vfs':
-        specifier: workspace:*
-        version: link:../vfs
+        specifier: file:../../../lifo-vfs/packages/vfs
+        version: file:../lifo-vfs/packages/vfs
     devDependencies:
       tsup:
         specifier: ^8.0.0
@@ -47,8 +47,8 @@ importers:
         specifier: workspace:*
         version: link:../node-compat
       '@lifo-sh/vfs':
-        specifier: workspace:*
-        version: link:../vfs
+        specifier: file:../../../lifo-vfs/packages/vfs
+        version: file:../lifo-vfs/packages/vfs
     devDependencies:
       '@vitest/browser':
         specifier: ^3.2.1
@@ -63,20 +63,14 @@ importers:
         specifier: ^3.2.1
         version: 3.2.4(@types/node@24.12.0)(@vitest/browser@3.2.4)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.10(@types/node@24.12.0)(typescript@5.9.3))(tsx@4.21.0)
 
-  packages/vfs:
-    devDependencies:
-      tsup:
-        specifier: ^8.0.0
-        version: 8.5.1(jiti@2.6.1)(postcss@8.5.8)(tsx@4.21.0)(typescript@5.9.3)
-
   packages/vite-react-app:
     dependencies:
       '@lifo-sh/node-compat':
         specifier: workspace:*
         version: link:../node-compat
       '@lifo-sh/vfs':
-        specifier: workspace:*
-        version: link:../vfs
+        specifier: file:../../../lifo-vfs/packages/vfs
+        version: file:../lifo-vfs/packages/vfs
       '@tailwindcss/vite':
         specifier: ^4.2.1
         version: 4.2.1(vite@7.3.1(@types/node@24.12.0)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))
@@ -593,6 +587,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@lifo-sh/vfs@file:../lifo-vfs/packages/vfs':
+    resolution: {directory: ../lifo-vfs/packages/vfs, type: directory}
 
   '@modelcontextprotocol/sdk@1.27.1':
     resolution: {integrity: sha512-sr6GbP+4edBwFndLbM60gf07z0FQ79gaExpnsjMGePXqFcSSb7t6iscpjk9DhFhwd+mTEQrzNafGP8/iGGFYaA==}
@@ -4108,6 +4105,8 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@lifo-sh/vfs@file:../lifo-vfs/packages/vfs': {}
 
   '@modelcontextprotocol/sdk@1.27.1(zod@3.25.76)':
     dependencies:

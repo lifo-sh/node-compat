@@ -21,7 +21,7 @@
     "test:browser": "vitest run --config vitest.browser.config.ts"
   },
   "dependencies": {
-    "@lifo-sh/vfs": "workspace:*",
+    "@lifo-sh/vfs": "file:../../../lifo-vfs/packages/vfs",
     "@lifo-sh/node-compat": "workspace:*"
   },
   "devDependencies": {
