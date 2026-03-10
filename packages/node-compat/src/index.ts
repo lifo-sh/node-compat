@@ -21,6 +21,8 @@ import { createModuleShim } from './module.js';
 import * as readlineModule from './readline.js';
 import { createRimraf } from './rimraf.js';
 import { createEsbuild } from './esbuild.js';
+import { createRollupNative } from './rollup-native.js';
+import picomatch from 'picomatch';
 
 export interface NodeContext {
   vfs: VFS;
@@ -290,6 +292,20 @@ export function createModuleMap(ctx: NodeContext): Record<string, () => unknown>
   // npm package shims
   map.rimraf = () => createRimraf(ctx.vfs, getCwd);
   map.esbuild = () => createEsbuild();
+  map.picomatch = () => picomatch;
+
+  // Rollup native bindings shim — intercept platform-specific native module
+  // with WASM-based implementation loaded from CDN.
+  // The virtual process reports linux/x64, so rollup resolves to this package.
+  // We register all common variants for robustness.
+  const rollupNativeFactory = () => createRollupNative();
+  map['@rollup/rollup-linux-x64-gnu'] = rollupNativeFactory;
+  map['@rollup/rollup-linux-x64-musl'] = rollupNativeFactory;
+  map['@rollup/rollup-darwin-arm64'] = rollupNativeFactory;
+  map['@rollup/rollup-darwin-x64'] = rollupNativeFactory;
+  map['@rollup/rollup-win32-x64-msvc'] = rollupNativeFactory;
+  map['@rollup/rollup-linux-arm64-gnu'] = rollupNativeFactory;
+  map['@rollup/rollup-linux-arm64-musl'] = rollupNativeFactory;
 
   return map;
 }

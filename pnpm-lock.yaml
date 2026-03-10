@@ -34,9 +34,15 @@ importers:
   packages/node-compat:
     dependencies:
       '@lifo-sh/vfs':
-        specifier: file:../../../lifo-vfs/packages/vfs
-        version: file:../lifo-vfs/packages/vfs
+        specifier: ^0.1.0
+        version: 0.1.2
+      picomatch:
+        specifier: ^4.0.3
+        version: 4.0.3
     devDependencies:
+      '@types/picomatch':
+        specifier: ^4.0.2
+        version: 4.0.2
       tsup:
         specifier: ^8.0.0
         version: 8.5.1(jiti@2.6.1)(postcss@8.5.8)(tsx@4.21.0)(typescript@5.9.3)
@@ -587,6 +593,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@lifo-sh/vfs@0.1.2':
+    resolution: {integrity: sha512-9f4qPWOmTsTFBsSln61n40ItQZgpMTLPuzZ5eHFv7N5X3z0reiYYMjFyBxU4v0+OcAf+b0R7LbqRwoz0cKMHhQ==}
 
   '@lifo-sh/vfs@file:../lifo-vfs/packages/vfs':
     resolution: {directory: ../lifo-vfs/packages/vfs, type: directory}
@@ -1615,6 +1624,9 @@ packages:
 
   '@types/node@24.12.0':
     resolution: {integrity: sha512-GYDxsZi3ChgmckRT9HPU0WEhKLP08ev/Yfcq2AstjrDASOYCSXeyjDsHg4v5t4jOj7cyDX3vmprafKlWIG9MXQ==}
+
+  '@types/picomatch@4.0.2':
+    resolution: {integrity: sha512-qHHxQ+P9PysNEGbALT8f8YOSHW0KJu6l2xU8DYY0fu/EmGxXdVnuTLvFUvBgPJMSqXq29SYHveejeAha+4AYgA==}
 
   '@types/react-dom@19.2.3':
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
@@ -4106,6 +4118,8 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  '@lifo-sh/vfs@0.1.2': {}
+
   '@lifo-sh/vfs@file:../lifo-vfs/packages/vfs': {}
 
   '@modelcontextprotocol/sdk@1.27.1(zod@3.25.76)':
@@ -5124,6 +5138,8 @@ snapshots:
   '@types/node@24.12.0':
     dependencies:
       undici-types: 7.16.0
+
+  '@types/picomatch@4.0.2': {}
 
   '@types/react-dom@19.2.3(@types/react@19.2.14)':
     dependencies:

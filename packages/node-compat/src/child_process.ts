@@ -44,9 +44,13 @@ export function createChildProcess(executeCapture?: ExecuteCapture) {
     throw new Error('child_process.spawn() is not supported in Lifo');
   }
 
+  function spawnSync(): never {
+    throw new Error('child_process.spawnSync() is not supported in Lifo');
+  }
+
   function fork(): never {
     throw new Error('child_process.fork() is not supported in Lifo');
   }
 
-  return { exec, execSync, spawn, fork };
+  return { exec, execSync, spawn, spawnSync, fork };
 }
