@@ -1,6 +1,6 @@
 {
   "name": "@lifo-sh/node-compat",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Node.js API compatibility layer for browsers",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -16,11 +16,6 @@
       "types": "./dist/fs.d.ts",
       "import": "./dist/fs.js",
       "require": "./dist/fs.cjs"
-    },
-    "./fs/promises": {
-      "types": "./dist/fs/promises.d.ts",
-      "import": "./dist/fs/promises.js",
-      "require": "./dist/fs/promises.cjs"
     },
     "./path": {
       "types": "./dist/path.d.ts",
@@ -52,11 +47,6 @@
       "import": "./dist/timers.js",
       "require": "./dist/timers.cjs"
     },
-    "./assert": {
-      "types": "./dist/assert.d.ts",
-      "import": "./dist/assert.js",
-      "require": "./dist/assert.cjs"
-    },
     "./os": {
       "types": "./dist/os.d.ts",
       "import": "./dist/os.js",
@@ -76,15 +66,78 @@
       "types": "./dist/crypto.d.ts",
       "import": "./dist/crypto.js",
       "require": "./dist/crypto.cjs"
+    },
+    "./http": {
+      "types": "./dist/http.d.ts",
+      "import": "./dist/http.js",
+      "require": "./dist/http.cjs"
+    },
+    "./console": {
+      "types": "./dist/console.d.ts",
+      "import": "./dist/console.js",
+      "require": "./dist/console.cjs"
+    },
+    "./child_process": {
+      "types": "./dist/child_process.d.ts",
+      "import": "./dist/child_process.js",
+      "require": "./dist/child_process.cjs"
+    },
+    "./module": {
+      "types": "./dist/module.d.ts",
+      "import": "./dist/module.js",
+      "require": "./dist/module.cjs"
+    },
+    "./rimraf": {
+      "types": "./dist/rimraf.d.ts",
+      "import": "./dist/rimraf.js",
+      "require": "./dist/rimraf.cjs"
+    },
+    "./esbuild": {
+      "types": "./dist/esbuild.d.ts",
+      "import": "./dist/esbuild.js",
+      "require": "./dist/esbuild.cjs"
+    },
+    "./dns": {
+      "types": "./dist/dns.d.ts",
+      "import": "./dist/dns.js",
+      "require": "./dist/dns.cjs"
+    },
+    "./readline": {
+      "types": "./dist/readline.d.ts",
+      "import": "./dist/readline.js",
+      "require": "./dist/readline.cjs"
+    },
+    "./string_decoder": {
+      "types": "./dist/string_decoder.d.ts",
+      "import": "./dist/string_decoder.js",
+      "require": "./dist/string_decoder.cjs"
+    },
+    "./tty": {
+      "types": "./dist/tty.d.ts",
+      "import": "./dist/tty.js",
+      "require": "./dist/tty.cjs"
+    },
+    "./zlib": {
+      "types": "./dist/zlib.d.ts",
+      "import": "./dist/zlib.js",
+      "require": "./dist/zlib.cjs"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js",
+      "require": "./dist/types.cjs"
     }
   },
   "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch"
   },
   "dependencies": {
-    "@lifo-sh/vfs": "file:../../../lifo-vfs/packages/vfs"
+    "@lifo-sh/vfs": "^0.1.0"
   },
   "devDependencies": {
     "tsup": "^8.0.0"

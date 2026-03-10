@@ -1,19 +1,17 @@
-const _setTimeout = globalThis.setTimeout.bind(globalThis);
-const _setInterval = globalThis.setInterval.bind(globalThis);
-const _clearTimeout = globalThis.clearTimeout.bind(globalThis);
-const _clearInterval = globalThis.clearInterval.bind(globalThis);
+export const _setTimeout = globalThis.setTimeout;
+export const _setInterval = globalThis.setInterval;
+export const _clearTimeout = globalThis.clearTimeout;
+export const _clearInterval = globalThis.clearInterval;
 
-export { _setTimeout as setTimeout, _setInterval as setInterval, _clearTimeout as clearTimeout, _clearInterval as clearInterval };
-
-export function setImmediate(callback: (...args: any[]) => void, ...args: any[]): ReturnType<typeof _setTimeout> {
-  return _setTimeout(() => callback(...args), 0);
+export function setImmediate(fn: (...args: unknown[]) => void, ...args: unknown[]): ReturnType<typeof setTimeout> {
+  return _setTimeout(() => fn(...args), 0);
 }
 
-export function clearImmediate(id: ReturnType<typeof _setTimeout>): void {
+export function clearImmediate(id: ReturnType<typeof setTimeout>): void {
   _clearTimeout(id);
 }
 
-const timers = {
+export default {
   setTimeout: _setTimeout,
   setInterval: _setInterval,
   clearTimeout: _clearTimeout,
@@ -21,5 +19,3 @@ const timers = {
   setImmediate,
   clearImmediate,
 };
-
-export default timers;

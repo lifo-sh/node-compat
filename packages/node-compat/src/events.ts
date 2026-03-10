@@ -1,61 +1,56 @@
 export class EventEmitter {
-  static defaultMaxListeners = 10;
+  private _events = new Map<string, Array<(...args: unknown[]) => void>>();
+  private _maxListeners = 10;
 
-  private _events: Map<string | symbol, Function[]> = new Map();
-  private _maxListeners: number = EventEmitter.defaultMaxListeners;
-
-  on(event: string | symbol, listener: Function): this {
-    const listeners = this._events.get(event) ?? [];
-    listeners.push(listener);
-    this._events.set(event, listeners);
+  on(event: string, listener: (...args: unknown[]) => void): this {
+    let list = this._events.get(event);
+    if (!list) {
+      list = [];
+      this._events.set(event, list);
+    }
+    list.push(listener);
     return this;
   }
 
-  addListener(event: string | symbol, listener: Function): this {
+  addListener(event: string, listener: (...args: unknown[]) => void): this {
     return this.on(event, listener);
   }
 
-  prependListener(event: string | symbol, listener: Function): this {
-    const listeners = this._events.get(event) ?? [];
-    listeners.unshift(listener);
-    this._events.set(event, listeners);
-    return this;
-  }
-
-  once(event: string | symbol, listener: Function): this {
-    const wrapper = (...args: any[]) => {
-      this.off(event, wrapper);
+  once(event: string, listener: (...args: unknown[]) => void): this {
+    const wrapped = (...args: unknown[]) => {
+      this.removeListener(event, wrapped);
       listener.apply(this, args);
     };
-    (wrapper as any)._original = listener;
-    return this.on(event, wrapper);
+    (wrapped as { _original?: (...args: unknown[]) => void })._original = listener;
+    return this.on(event, wrapped);
   }
 
-  prependOnceListener(event: string | symbol, listener: Function): this {
-    const wrapper = (...args: any[]) => {
-      this.off(event, wrapper);
-      listener.apply(this, args);
-    };
-    (wrapper as any)._original = listener;
-    return this.prependListener(event, wrapper);
+  emit(event: string, ...args: unknown[]): boolean {
+    const list = this._events.get(event);
+    if (!list || list.length === 0) return false;
+    const copy = [...list];
+    for (const fn of copy) {
+      fn.apply(this, args);
+    }
+    return true;
   }
 
-  off(event: string | symbol, listener: Function): this {
-    const listeners = this._events.get(event);
-    if (!listeners) return this;
-    const idx = listeners.findIndex(
-      (l) => l === listener || (l as any)._original === listener
+  removeListener(event: string, listener: (...args: unknown[]) => void): this {
+    const list = this._events.get(event);
+    if (!list) return this;
+    const idx = list.findIndex(
+      (fn) => fn === listener || (fn as { _original?: unknown })._original === listener,
     );
-    if (idx !== -1) listeners.splice(idx, 1);
-    if (listeners.length === 0) this._events.delete(event);
+    if (idx !== -1) list.splice(idx, 1);
+    if (list.length === 0) this._events.delete(event);
     return this;
   }
 
-  removeListener(event: string | symbol, listener: Function): this {
-    return this.off(event, listener);
+  off(event: string, listener: (...args: unknown[]) => void): this {
+    return this.removeListener(event, listener);
   }
 
-  removeAllListeners(event?: string | symbol): this {
+  removeAllListeners(event?: string): this {
     if (event !== undefined) {
       this._events.delete(event);
     } else {
@@ -64,29 +59,12 @@ export class EventEmitter {
     return this;
   }
 
-  emit(event: string | symbol, ...args: any[]): boolean {
-    const listeners = this._events.get(event);
-    if (!listeners || listeners.length === 0) return false;
-    for (const listener of [...listeners]) {
-      listener.apply(this, args);
-    }
-    return true;
-  }
-
-  listeners(event: string | symbol): Function[] {
-    return [...(this._events.get(event) ?? [])];
-  }
-
-  rawListeners(event: string | symbol): Function[] {
-    return [...(this._events.get(event) ?? [])];
-  }
-
-  listenerCount(event: string | symbol): number {
+  listenerCount(event: string): number {
     return this._events.get(event)?.length ?? 0;
   }
 
-  eventNames(): (string | symbol)[] {
-    return [...this._events.keys()];
+  listeners(event: string): Array<(...args: unknown[]) => void> {
+    return [...(this._events.get(event) ?? [])];
   }
 
   setMaxListeners(n: number): this {
@@ -97,57 +75,20 @@ export class EventEmitter {
   getMaxListeners(): number {
     return this._maxListeners;
   }
-}
 
-export function once(emitter: EventEmitter, event: string | symbol): Promise<any[]> {
-  return new Promise((resolve, reject) => {
-    const onError = (err: Error) => {
-      emitter.off(event, onEvent);
-      reject(err);
-    };
-    const onEvent = (...args: any[]) => {
-      emitter.off("error", onError);
-      resolve(args);
-    };
-    emitter.once(event, onEvent);
-    if (event !== "error") {
-      emitter.once("error", onError);
+  eventNames(): string[] {
+    return [...this._events.keys()];
+  }
+
+  prependListener(event: string, listener: (...args: unknown[]) => void): this {
+    let list = this._events.get(event);
+    if (!list) {
+      list = [];
+      this._events.set(event, list);
     }
-  });
-}
-
-export async function* on(emitter: EventEmitter, event: string | symbol): AsyncIterableIterator<any[]> {
-  const queue: any[][] = [];
-  let resolve: (() => void) | null = null;
-  let done = false;
-
-  const listener = (...args: any[]) => {
-    queue.push(args);
-    if (resolve) { resolve(); resolve = null; }
-  };
-
-  const errorListener = (err: Error) => {
-    done = true;
-    if (resolve) { resolve(); resolve = null; }
-    throw err;
-  };
-
-  emitter.on(event, listener);
-  if (event !== "error") emitter.on("error", errorListener);
-
-  try {
-    while (!done) {
-      if (queue.length > 0) {
-        yield queue.shift()!;
-      } else {
-        await new Promise<void>((r) => { resolve = r; });
-      }
-    }
-  } finally {
-    emitter.off(event, listener);
-    if (event !== "error") emitter.off("error", errorListener);
+    list.unshift(listener);
+    return this;
   }
 }
 
-const events = { EventEmitter, once, on };
-export default events;
+export default EventEmitter;

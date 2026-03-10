@@ -1,121 +1,199 @@
-interface ProcessLike {
-  env: Record<string, string | undefined>;
-  argv: string[];
-  argv0: string;
-  platform: string;
-  arch: string;
-  version: string;
-  versions: Record<string, string>;
-  pid: number;
-  ppid: number;
-  title: string;
-  execPath: string;
-  stdout: { write(s: string): boolean };
-  stderr: { write(s: string): boolean };
-  cwd(): string;
-  chdir(dir: string): void;
-  nextTick(callback: (...args: any[]) => void, ...args: any[]): void;
-  exit(code?: number): void;
-  hrtime(time?: [number, number]): [number, number];
-  memoryUsage(): { rss: number; heapTotal: number; heapUsed: number; external: number; arrayBuffers: number };
-  uptime(): number;
-  emitWarning(warning: string | Error, type?: string): void;
-  on(event: string, listener: Function): ProcessLike;
-  off(event: string, listener: Function): ProcessLike;
-  once(event: string, listener: Function): ProcessLike;
-  removeListener(event: string, listener: Function): ProcessLike;
-  emit(event: string, ...args: any[]): boolean;
+import type { CommandOutputStream } from './types.js';
+
+export class ProcessExitError extends Error {
+  exitCode: number;
+  constructor(code: number) {
+    super(`process.exit(${code})`);
+    this.name = 'ProcessExitError';
+    this.exitCode = code;
+  }
 }
 
-const process: ProcessLike = {
-  env: {} as Record<string, string | undefined>,
-  argv: ["node", "script.js"],
-  argv0: "node",
-  platform: "browser" as string,
-  arch: "wasm" as string,
-  version: "v20.0.0",
-  versions: {} as Record<string, string>,
-  pid: 1,
-  ppid: 0,
-  title: "browser",
-  execPath: "/usr/bin/node",
-  stdout: { write(s: string) { console.log(s); return true; } },
-  stderr: { write(s: string) { console.error(s); return true; } },
+export interface ProcessOptions {
+  argv: string[];
+  env: Record<string, string>;
+  cwd: string | (() => string);  // Support dynamic cwd
+  stdout: CommandOutputStream;
+  stderr: CommandOutputStream;
+  vfs?: any;  // Optional VFS for path validation
+}
 
-  cwd(): string {
-    return "/";
-  },
+export function createProcess(opts: ProcessOptions) {
+  const startTime = Date.now();
+  const listeners: Record<string, Array<(...args: unknown[]) => void>> = {};
 
-  chdir(_dir: string): void {
-    // no-op in browser
-  },
+  // Support dynamic cwd
+  let currentCwd = typeof opts.cwd === 'function' ? opts.cwd() : opts.cwd;
 
-  nextTick(callback: (...args: any[]) => void, ...args: any[]): void {
-    queueMicrotask(() => callback(...args));
-  },
+  const proc = {
+    argv: ['/usr/bin/node', ...opts.argv],
+    argv0: 'node',
+    env: { ...opts.env },
+    cwd: () => currentCwd,
+    chdir: (dir: string) => {
+      // Resolve the new directory
+      const resolved = dir.startsWith('/') ? dir : `${currentCwd}/${dir}`;
 
-  exit(_code?: number): void {
-    throw new Error(`process.exit(${_code ?? 0}) called`);
-  },
+      // Validate that the directory exists if VFS is available
+      if (opts.vfs && !opts.vfs.exists(resolved)) {
+        throw new Error(`ENOENT: no such file or directory, chdir '${dir}'`);
+      }
+      if (opts.vfs) {
+        const stat = opts.vfs.stat(resolved);
+        if (stat.type !== 'directory') {
+          throw new Error(`ENOTDIR: not a directory, chdir '${dir}'`);
+        }
+      }
 
-  hrtime(time?: [number, number]): [number, number] {
-    const now = performance.now();
-    const seconds = Math.floor(now / 1000);
-    const nanoseconds = Math.floor((now % 1000) * 1e6);
-    if (time) {
-      let diffSec = seconds - time[0];
-      let diffNs = nanoseconds - time[1];
-      if (diffNs < 0) { diffSec--; diffNs += 1e9; }
-      return [diffSec, diffNs];
-    }
-    return [seconds, nanoseconds];
-  },
+      currentCwd = resolved;
+      console.log(`[process] chdir: ${resolved}`);
+    },
+    exit: (code = 0) => {
+      if (code !== 0) {
+        opts.stderr.write(`[process.exit] code=${code}\n`);
+      }
+      throw new ProcessExitError(code);
+    },
+    stdout: {
+      write: (data: string) => { opts.stdout.write(data); return true; },
+      isTTY: false,
+      fd: 1,
+      bytesWritten: 0,
+      columns: 80,
+      on: () => {},
+      once: () => {},
+    },
+    stderr: {
+      write: (data: string) => { opts.stderr.write(data); return true; },
+      isTTY: false,
+      fd: 2,
+      bytesWritten: 0,
+      columns: 80,
+      on: () => {},
+      once: () => {},
+    },
+    stdin: {
+      isTTY: false,
+      fd: 0,
+      on: () => {},
+      once: () => {},
+      resume: () => {},
+      pause: () => {},
+      setEncoding: () => {},
+      read: () => null,
+    },
+    platform: 'linux' as string,
+    arch: 'x64' as string,
+    version: 'v22.14.0',
+    versions: {
+      node: '22.14.0',
+      lifo: '0.1.0',
+    },
+    pid: 1,
+    ppid: 0,
+    title: 'node',
+    execPath: '/usr/bin/node',
+    hrtime: Object.assign(
+      (prev?: [number, number]): [number, number] => {
+        const now = performance.now();
+        const sec = Math.floor(now / 1000);
+        const nano = Math.floor((now % 1000) * 1e6);
+        if (prev) {
+          let ds = sec - prev[0];
+          let dn = nano - prev[1];
+          if (dn < 0) { ds--; dn += 1e9; }
+          return [ds, dn];
+        }
+        return [sec, nano];
+      },
+      {
+        bigint: (): bigint => BigInt(Math.floor(performance.now() * 1e6)),
+      },
+    ),
+    nextTick: (fn: (...args: unknown[]) => void, ...args: unknown[]) => {
+      queueMicrotask(() => fn(...args));
+    },
+    memoryUsage: () => {
+      const m = (performance as unknown as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
+      return {
+        rss: m?.usedJSHeapSize ?? 0,
+        heapTotal: m?.totalJSHeapSize ?? 0,
+        heapUsed: m?.usedJSHeapSize ?? 0,
+        external: 0,
+        arrayBuffers: 0,
+      };
+    },
+    uptime: () => (Date.now() - startTime) / 1000,
+    release: { name: 'node' },
+    config: {},
+    emitWarning: (msg: string) => { opts.stderr.write(`Warning: ${msg}\n`); },
+    // POSIX identity stubs (needed by many npm packages)
+    getuid: () => 1000,
+    getgid: () => 1000,
+    geteuid: () => 1000,
+    getegid: () => 1000,
+    umask: (mask?: number) => mask ?? 0o22,
+    // process.binding() stub — low-level Node.js internal, used by execa/errname etc.
+    binding: (name: string) => {
+      if (name === 'uv') {
+        return {
+          errname: (code: number) => `UV_UNKNOWN_${code}`,
+          UV_EOF: -4095,
+        };
+      }
+      if (name === 'natives') return {};
+      if (name === 'constants') return { os: {}, fs: {}, crypto: {} };
+      return {};
+    },
+    // EventEmitter-like methods (many packages check for process.on('exit'))
+    on: (event: string, fn: (...args: unknown[]) => void) => {
+      if (!listeners[event]) listeners[event] = [];
+      listeners[event].push(fn);
+      return proc;
+    },
+    addListener: (event: string, fn: (...args: unknown[]) => void) => {
+      return proc.on(event, fn);
+    },
+    once: (event: string, fn: (...args: unknown[]) => void) => {
+      const wrapped = (...args: unknown[]) => {
+        proc.removeListener(event, wrapped);
+        fn(...args);
+      };
+      return proc.on(event, wrapped);
+    },
+    off: (event: string, fn: (...args: unknown[]) => void) => {
+      if (listeners[event]) {
+        listeners[event] = listeners[event].filter((f) => f !== fn);
+      }
+      return proc;
+    },
+    removeListener: (event: string, fn: (...args: unknown[]) => void) => proc.off(event, fn),
+    removeAllListeners: (event?: string) => {
+      if (event) delete listeners[event];
+      else Object.keys(listeners).forEach((k) => delete listeners[k]);
+      return proc;
+    },
+    listeners: (event: string) => listeners[event] ? [...listeners[event]] : [],
+    emit: (event: string, ...args: unknown[]) => {
+      const fns = listeners[event];
+      if (!fns || fns.length === 0) return false;
+      for (const fn of [...fns]) fn(...args);
+      return true;
+    },
+    listenerCount: (event: string) => listeners[event]?.length ?? 0,
+    setMaxListeners: () => proc,
+    getMaxListeners: () => 10,
+    prependListener: (event: string, fn: (...args: unknown[]) => void) => {
+      if (!listeners[event]) listeners[event] = [];
+      listeners[event].unshift(fn);
+      return proc;
+    },
+    rawListeners: (event: string) => listeners[event] ? [...listeners[event]] : [],
+    eventNames: () => Object.keys(listeners),
+    // Feature detection flags
+    allowedNodeEnvironmentFlags: new Set<string>(),
+    features: { inspector: false, debug: false, uv: false, tls_alpn: false, tls_sni: false, tls_ocsp: false, tls: false },
+  };
 
-  memoryUsage() {
-    return { rss: 0, heapTotal: 0, heapUsed: 0, external: 0, arrayBuffers: 0 };
-  },
-
-  uptime(): number {
-    return performance.now() / 1000;
-  },
-
-  emitWarning(warning: string | Error, _type?: string): void {
-    console.warn(typeof warning === "string" ? warning : warning.message);
-  },
-
-  on(_event: string, _listener: Function): typeof process {
-    return process;
-  },
-
-  off(_event: string, _listener: Function): typeof process {
-    return process;
-  },
-
-  once(_event: string, _listener: Function): typeof process {
-    return process;
-  },
-
-  removeListener(_event: string, _listener: Function): typeof process {
-    return process;
-  },
-
-  emit(_event: string, ..._args: any[]): boolean {
-    return false;
-  },
-};
-
-export const env = process.env;
-export const argv = process.argv;
-export const platform = process.platform;
-export const arch = process.arch;
-export const version = process.version;
-export const pid = process.pid;
-
-export function cwd() { return process.cwd(); }
-export function chdir(dir: string) { process.chdir(dir); }
-export function nextTick(callback: (...args: any[]) => void, ...args: any[]) { process.nextTick(callback, ...args); }
-export function exit(code?: number) { process.exit(code); }
-export function hrtime(time?: [number, number]) { return process.hrtime(time); }
-export function uptime() { return process.uptime(); }
-
-export default process;
+  return proc;
+}

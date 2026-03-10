@@ -1,4 +1,4 @@
-import { createVFS, MemoryBackend } from "@lifo-sh/vfs";
+import { VFS } from "@lifo-sh/vfs";
 import fs from "@lifo-sh/node-compat/fs";
 import path from "@lifo-sh/node-compat/path";
 import { EventEmitter } from "@lifo-sh/node-compat/events";
@@ -46,49 +46,49 @@ function comingSoon(name: string, category: string): Story {
 export const stories: Story[] = [
   // ━━━ VFS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  implemented("readFile / writeFile", "VFS", `import { createVFS, MemoryBackend } from "@lifo-sh/vfs";
+  implemented("readFile / writeFile", "VFS", `import { VFS } from "@lifo-sh/vfs";
 
-const vfs = createVFS({ backend: new MemoryBackend() });
+const vfs = new VFS();
 const data = new TextEncoder().encode("Hello from VFS!");
-await vfs.writeFile("/hello.txt", data);
+vfs.writeFile("/hello.txt", data);
 
-const result = await vfs.readFile("/hello.txt");
+const result = vfs.readFile("/hello.txt");
 console.log(new TextDecoder().decode(result));`,
     async () => {
-      const vfs = createVFS({ backend: new MemoryBackend() });
+      const vfs = new VFS();
       const data = new TextEncoder().encode("Hello from VFS!");
-      await vfs.writeFile("/hello.txt", data);
-      const result = await vfs.readFile("/hello.txt");
+      vfs.writeFile("/hello.txt", data);
+      const result = vfs.readFile("/hello.txt");
       return `Written & read: "${new TextDecoder().decode(result)}"`;
     },
     (output) => {
       assertContains(output, 'Written & read: "Hello from VFS!"');
     }),
 
-  implemented("mkdir / readdir / stat", "VFS", `import { createVFS, MemoryBackend } from "@lifo-sh/vfs";
+  implemented("mkdir / readdir / stat", "VFS", `import { VFS } from "@lifo-sh/vfs";
 
-const vfs = createVFS({ backend: new MemoryBackend() });
-await vfs.mkdir("/src/components", { recursive: true });
-await vfs.writeFile(
+const vfs = new VFS();
+vfs.mkdir("/src/components", { recursive: true });
+vfs.writeFile(
   "/src/components/App.tsx",
   new TextEncoder().encode("<App />")
 );
-await vfs.writeFile(
+vfs.writeFile(
   "/src/components/Header.tsx",
   new TextEncoder().encode("<Header />")
 );
 
-const entries = await vfs.readdir("/src/components");
-const stat = await vfs.stat("/src/components");
-console.log(entries, stat.isDirectory());`,
+const entries = vfs.readdir("/src/components");
+const stat = vfs.stat("/src/components");
+console.log(entries.map(d => d.name), stat.type === 'directory');`,
     async () => {
-      const vfs = createVFS({ backend: new MemoryBackend() });
-      await vfs.mkdir("/src/components", { recursive: true });
-      await vfs.writeFile("/src/components/App.tsx", new TextEncoder().encode("<App />"));
-      await vfs.writeFile("/src/components/Header.tsx", new TextEncoder().encode("<Header />"));
-      const entries = await vfs.readdir("/src/components");
-      const stat = await vfs.stat("/src/components");
-      return `Entries: [${entries.join(", ")}]\nIs directory: ${stat.isDirectory()}`;
+      const vfs = new VFS();
+      vfs.mkdir("/src/components", { recursive: true });
+      vfs.writeFile("/src/components/App.tsx", new TextEncoder().encode("<App />"));
+      vfs.writeFile("/src/components/Header.tsx", new TextEncoder().encode("<Header />"));
+      const entries = vfs.readdir("/src/components");
+      const stat = vfs.stat("/src/components");
+      return `Entries: [${entries.map(d => d.name).join(", ")}]\nIs directory: ${stat.type === 'directory'}`;
     },
     (output) => {
       assertContains(output, "App.tsx");
@@ -96,56 +96,56 @@ console.log(entries, stat.isDirectory());`,
       assertContains(output, "Is directory: true");
     }),
 
-  implemented("watch", "VFS", `import { createVFS, MemoryBackend } from "@lifo-sh/vfs";
+  implemented("watch", "VFS", `import { VFS } from "@lifo-sh/vfs";
 
-const vfs = createVFS({ backend: new MemoryBackend() });
-await vfs.mkdir("/watched");
+const vfs = new VFS();
+vfs.mkdir("/watched");
 
 const events: string[] = [];
-const handle = vfs.watch("/watched", (event) => {
+const unwatch = vfs.watch("/watched", (event) => {
   events.push(\`\${event.type}: \${event.path}\`);
 });
 
-await vfs.writeFile("/watched/a.txt", encode("a"));
-await vfs.writeFile("/watched/a.txt", encode("updated"));
-await vfs.unlink("/watched/a.txt");
-handle.close();
+vfs.writeFile("/watched/a.txt", encode("a"));
+vfs.writeFile("/watched/a.txt", encode("updated"));
+vfs.unlink("/watched/a.txt");
+unwatch();
 
 console.log(events);`,
     async () => {
-      const vfs = createVFS({ backend: new MemoryBackend() });
-      await vfs.mkdir("/watched");
+      const vfs = new VFS();
+      vfs.mkdir("/watched");
       const events: string[] = [];
-      const handle = vfs.watch("/watched", (event) => {
+      const unwatch = vfs.watch("/watched", (event) => {
         events.push(`${event.type}: ${event.path}`);
       });
-      await vfs.writeFile("/watched/a.txt", new TextEncoder().encode("a"));
-      await vfs.writeFile("/watched/a.txt", new TextEncoder().encode("updated"));
-      await vfs.unlink("/watched/a.txt");
-      handle.close();
+      vfs.writeFile("/watched/a.txt", new TextEncoder().encode("a"));
+      vfs.writeFile("/watched/a.txt", new TextEncoder().encode("updated"));
+      vfs.unlink("/watched/a.txt");
+      unwatch();
       return `Events:\n${events.map((e) => `  ${e}`).join("\n")}`;
     },
     (output) => {
       assertContains(output, "create: /watched/a.txt");
-      assertContains(output, "change: /watched/a.txt");
+      assertContains(output, "modify: /watched/a.txt");
       assertContains(output, "delete: /watched/a.txt");
     }),
 
-  implemented("rename", "VFS", `import { createVFS, MemoryBackend } from "@lifo-sh/vfs";
+  implemented("rename", "VFS", `import { VFS } from "@lifo-sh/vfs";
 
-const vfs = createVFS({ backend: new MemoryBackend() });
-await vfs.writeFile("/old.txt", new TextEncoder().encode("content"));
-await vfs.rename("/old.txt", "/new.txt");
+const vfs = new VFS();
+vfs.writeFile("/old.txt", new TextEncoder().encode("content"));
+vfs.rename("/old.txt", "/new.txt");
 
-console.log(await vfs.exists("/old.txt"));  // false
-console.log(await vfs.exists("/new.txt"));  // true
-console.log(new TextDecoder().decode(await vfs.readFile("/new.txt")));`,
+console.log(vfs.exists("/old.txt"));  // false
+console.log(vfs.exists("/new.txt"));  // true
+console.log(new TextDecoder().decode(vfs.readFile("/new.txt")));`,
     async () => {
-      const vfs = createVFS({ backend: new MemoryBackend() });
-      await vfs.writeFile("/old.txt", new TextEncoder().encode("content"));
-      await vfs.rename("/old.txt", "/new.txt");
-      const content = new TextDecoder().decode(await vfs.readFile("/new.txt"));
-      return `Exists /old.txt: ${await vfs.exists("/old.txt")}\nExists /new.txt: ${await vfs.exists("/new.txt")}\nContent: "${content}"`;
+      const vfs = new VFS();
+      vfs.writeFile("/old.txt", new TextEncoder().encode("content"));
+      vfs.rename("/old.txt", "/new.txt");
+      const content = new TextDecoder().decode(vfs.readFile("/new.txt"));
+      return `Exists /old.txt: ${vfs.exists("/old.txt")}\nExists /new.txt: ${vfs.exists("/new.txt")}\nContent: "${content}"`;
     },
     (output) => {
       assertContains(output, "Exists /old.txt: false");
@@ -153,22 +153,22 @@ console.log(new TextDecoder().decode(await vfs.readFile("/new.txt")));`,
       assertContains(output, 'Content: "content"');
     }),
 
-  implemented("unlink / rmdir", "VFS", `import { createVFS, MemoryBackend } from "@lifo-sh/vfs";
+  implemented("unlink / rmdir", "VFS", `import { VFS } from "@lifo-sh/vfs";
 
-const vfs = createVFS({ backend: new MemoryBackend() });
-await vfs.mkdir("/tmp/nested", { recursive: true });
-await vfs.writeFile("/tmp/nested/file.txt", new TextEncoder().encode("x"));
-await vfs.unlink("/tmp/nested/file.txt");
-await vfs.rmdir("/tmp", { recursive: true });
+const vfs = new VFS();
+vfs.mkdir("/tmp/nested", { recursive: true });
+vfs.writeFile("/tmp/nested/file.txt", new TextEncoder().encode("x"));
+vfs.unlink("/tmp/nested/file.txt");
+vfs.rmdirRecursive("/tmp");
 
-console.log(await vfs.exists("/tmp")); // false`,
+console.log(vfs.exists("/tmp")); // false`,
     async () => {
-      const vfs = createVFS({ backend: new MemoryBackend() });
-      await vfs.mkdir("/tmp/nested", { recursive: true });
-      await vfs.writeFile("/tmp/nested/file.txt", new TextEncoder().encode("x"));
-      await vfs.unlink("/tmp/nested/file.txt");
-      await vfs.rmdir("/tmp", { recursive: true });
-      return `Exists /tmp: ${await vfs.exists("/tmp")}`;
+      const vfs = new VFS();
+      vfs.mkdir("/tmp/nested", { recursive: true });
+      vfs.writeFile("/tmp/nested/file.txt", new TextEncoder().encode("x"));
+      vfs.unlink("/tmp/nested/file.txt");
+      vfs.rmdirRecursive("/tmp");
+      return `Exists /tmp: ${vfs.exists("/tmp")}`;
     },
     (output) => {
       assertContains(output, "Exists /tmp: false");
