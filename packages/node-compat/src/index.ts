@@ -1,4 +1,4 @@
-import type { VFS, IKernelProcessAPI } from '@lifo-sh/kernel';
+import type { IKernelVfs, IKernelProcessAPI } from '@lifo-sh/kernel';
 import type { CommandOutputStream, VirtualRequestHandler } from './types.js';
 import { createFs } from './fs.js';
 import pathModule from './path.js';
@@ -25,7 +25,7 @@ import { createRollupNative } from './rollup-native.js';
 import picomatch from 'picomatch';
 
 export interface NodeContext {
-  vfs: VFS;
+  vfs: IKernelVfs;
   cwd: string | (() => string);  // Support dynamic cwd for process.chdir()
   env: Record<string, string>;
   stdout: CommandOutputStream;

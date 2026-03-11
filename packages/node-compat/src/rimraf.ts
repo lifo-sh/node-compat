@@ -6,7 +6,7 @@
  * fs shim's recursive rmdir.
  */
 
-import { VFS } from '@lifo-sh/kernel';
+import type { IKernelVfs } from '@lifo-sh/kernel';
 import { resolve } from './path.js';
 
 export interface RimrafOptions {
@@ -16,7 +16,7 @@ export interface RimrafOptions {
   filter?: (path: string) => boolean;
 }
 
-export function createRimraf(vfs: VFS, cwd: string | (() => string)) {
+export function createRimraf(vfs: IKernelVfs, cwd: string | (() => string)) {
   function removeSync(p: string): void {
     const cwdValue = typeof cwd === 'function' ? cwd() : cwd;
     const abs = resolve(cwdValue, p);

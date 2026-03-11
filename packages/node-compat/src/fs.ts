@@ -1,4 +1,4 @@
-import type { VFS } from '@lifo-sh/kernel';
+import type { IKernelVfs } from '@lifo-sh/kernel';
 import { VFSError } from '@lifo-sh/kernel';
 import type { Stat as VfsStat } from '@lifo-sh/kernel';
 import { resolve, basename } from '@lifo-sh/kernel';
@@ -170,7 +170,7 @@ function parseFlags(flags: string | number): number {
   }
 }
 
-export function createFs(vfs: VFS, cwd: string | (() => string)) {
+export function createFs(vfs: IKernelVfs, cwd: string | (() => string)) {
   // --- File descriptor table ---
 
   const fdTable = new Map<number, FdEntry>();
