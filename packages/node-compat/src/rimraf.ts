@@ -6,7 +6,7 @@
  * fs shim's recursive rmdir.
  */
 
-import { VFS } from '@lifo-sh/vfs';
+import { VFS } from '@lifo-sh/kernel';
 import { resolve } from './path.js';
 
 export interface RimrafOptions {

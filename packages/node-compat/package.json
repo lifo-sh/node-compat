@@ -139,7 +139,7 @@
     "dev": "tsup --watch"
   },
   "dependencies": {
-    "@lifo-sh/vfs": "^0.1.0",
+    "@lifo-sh/kernel": "link:../../../kernel/packages/kernel",
     "picomatch": "^4.0.3"
   },
   "devDependencies": {

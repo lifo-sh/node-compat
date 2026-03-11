@@ -6,7 +6,7 @@ import {
   dirname,
   basename,
   extname,
-} from '@lifo-sh/vfs';
+} from '@lifo-sh/kernel';
 
 export function relative(from: string, to: string): string {
   const fromParts = normalize(from).split('/').filter(Boolean);

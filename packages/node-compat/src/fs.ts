@@ -1,7 +1,7 @@
-import type { VFS } from '@lifo-sh/vfs';
-import { VFSError } from '@lifo-sh/vfs';
-import type { Stat as VfsStat } from '@lifo-sh/vfs';
-import { resolve, basename } from '@lifo-sh/vfs';
+import type { VFS } from '@lifo-sh/kernel';
+import { VFSError } from '@lifo-sh/kernel';
+import type { Stat as VfsStat } from '@lifo-sh/kernel';
+import { resolve, basename } from '@lifo-sh/kernel';
 import { Readable, Writable } from './stream.js';
 import { EventEmitter } from './events.js';
 import { Buffer } from './buffer.js';

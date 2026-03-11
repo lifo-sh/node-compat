@@ -31,5 +31,5 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
-  external: ["@lifo-sh/vfs"],
+  external: ["@lifo-sh/kernel"],
 });

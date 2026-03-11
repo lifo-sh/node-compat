@@ -1,4 +1,4 @@
-import type { VFS } from '@lifo-sh/vfs';
+import type { VFS } from '@lifo-sh/kernel';
 import type { CommandOutputStream, VirtualRequestHandler } from './types.js';
 import { createFs } from './fs.js';
 import pathModule from './path.js';
