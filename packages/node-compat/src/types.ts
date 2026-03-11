@@ -4,4 +4,9 @@ export type {
   VirtualRequest,
   VirtualResponse,
   VirtualRequestHandler,
+  IKernelProcessAPI,
+  ChildProcessHandle,
+  ReadableStreamHandle,
+  SpawnSyscallOptions,
+  ExecSyscallOptions,
 } from '@lifo-sh/kernel/types';

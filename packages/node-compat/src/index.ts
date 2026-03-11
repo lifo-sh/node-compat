@@ -1,4 +1,4 @@
-import type { VFS } from '@lifo-sh/kernel';
+import type { VFS, IKernelProcessAPI } from '@lifo-sh/kernel';
 import type { CommandOutputStream, VirtualRequestHandler } from './types.js';
 import { createFs } from './fs.js';
 import pathModule from './path.js';
@@ -36,6 +36,7 @@ export interface NodeContext {
   signal: AbortSignal;
   executeCapture?: (input: string) => Promise<string>;
   portRegistry?: Map<number, VirtualRequestHandler>;
+  processAPI?: IKernelProcessAPI;
 }
 
 export function createModuleMap(ctx: NodeContext): Record<string, () => unknown> {
@@ -69,7 +70,7 @@ export function createModuleMap(ctx: NodeContext): Record<string, () => unknown>
     util: () => utilModule,
     http: () => createHttp(ctx.portRegistry, 'http:'),
     https: () => createHttp(ctx.portRegistry, 'https:'),
-    child_process: () => createChildProcess(ctx.executeCapture),
+    child_process: () => createChildProcess(ctx.executeCapture, ctx.processAPI),
     stream: () => {
       // Node.js CJS: require('stream') returns the Stream base class with
       // .Readable, .Writable, .Duplex, .PassThrough, .Stream attached

@@ -1,6 +1,6 @@
 {
   "name": "@lifo-sh/node-compat",
-  "version": "0.1.3",
+  "version": "0.1.5",
   "description": "Node.js API compatibility layer for browsers",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -139,7 +139,7 @@
     "dev": "tsup --watch"
   },
   "dependencies": {
-    "@lifo-sh/kernel": "link:../../../kernel/packages/kernel",
+    "@lifo-sh/kernel": ">=0.1.0",
     "picomatch": "^4.0.3"
   },
   "devDependencies": {
