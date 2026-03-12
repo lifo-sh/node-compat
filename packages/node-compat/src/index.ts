@@ -22,6 +22,7 @@ import * as readlineModule from './readline.js';
 import { createRimraf } from './rimraf.js';
 import { createEsbuild } from './esbuild.js';
 import { createRollupNative } from './rollup-native.js';
+import assertModule from './assert.js';
 import picomatch from 'picomatch';
 
 export interface NodeContext {
@@ -111,23 +112,7 @@ export function createModuleMap(ctx: NodeContext): Record<string, () => unknown>
       escape: encodeURIComponent,
       unescape: decodeURIComponent,
     }),
-    assert: () => {
-      const assert = (value: unknown, message?: string) => {
-        if (!value) throw new Error(message || 'AssertionError');
-      };
-      assert.ok = assert;
-      assert.equal = (a: unknown, b: unknown, msg?: string) => { if (a != b) throw new Error(msg || `${a} != ${b}`); };
-      assert.strictEqual = (a: unknown, b: unknown, msg?: string) => { if (a !== b) throw new Error(msg || `${a} !== ${b}`); };
-      assert.notEqual = (a: unknown, b: unknown, msg?: string) => { if (a == b) throw new Error(msg || `${a} == ${b}`); };
-      assert.notStrictEqual = (a: unknown, b: unknown, msg?: string) => { if (a === b) throw new Error(msg || `${a} === ${b}`); };
-      assert.deepStrictEqual = (a: unknown, b: unknown, msg?: string) => {
-        if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(msg || 'deepStrictEqual failed');
-      };
-      assert.throws = (fn: () => void, msg?: string) => {
-        try { fn(); throw new Error(msg || 'Expected function to throw'); } catch (e) { if (e instanceof Error && e.message === (msg || 'Expected function to throw')) throw e; }
-      };
-      return assert;
-    },
+    assert: () => assertModule,
     // v8 — stub (vite side-effect imports it)
     v8: () => ({
       getHeapStatistics: () => ({

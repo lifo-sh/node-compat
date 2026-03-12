@@ -1,4 +1,8 @@
 export function createOs(env: Record<string, string>) {
+  return createOsObject(env);
+}
+
+function createOsObject(env: Record<string, string> = {}) {
   return {
     arch: () => 'wasm',
     platform: () => 'lifo',
@@ -42,3 +46,5 @@ export function createOs(env: Record<string, string>) {
     },
   };
 }
+
+export default createOsObject();

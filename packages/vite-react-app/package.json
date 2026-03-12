@@ -14,7 +14,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "@lifo-sh/node-compat": "workspace:*",
-    "@lifo-sh/vfs": "file:../../../lifo-vfs/packages/vfs",
+    "@lifo-sh/kernel": "file:../../../kernel/packages/kernel",
     "stories": "workspace:*",
     "lucide-react": "^0.577.0",
     "radix-ui": "^1.4.3",

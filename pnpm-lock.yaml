@@ -14,12 +14,12 @@ importers:
 
   packages/cli-app:
     dependencies:
+      '@lifo-sh/kernel':
+        specifier: file:../../../kernel/packages/kernel
+        version: file:../kernel/packages/kernel(@lifo-sh/node-compat@packages+node-compat)
       '@lifo-sh/node-compat':
         specifier: workspace:*
         version: link:../node-compat
-      '@lifo-sh/vfs':
-        specifier: file:../../../lifo-vfs/packages/vfs
-        version: file:../lifo-vfs/packages/vfs
       stories:
         specifier: workspace:*
         version: link:../stories
@@ -34,8 +34,8 @@ importers:
   packages/node-compat:
     dependencies:
       '@lifo-sh/kernel':
-        specifier: link:../../../kernel/packages/kernel
-        version: link:../../../kernel/packages/kernel
+        specifier: '>=0.1.0'
+        version: 0.1.9(@lifo-sh/node-compat@0.1.11)
       picomatch:
         specifier: ^4.0.3
         version: 4.0.3
@@ -49,12 +49,12 @@ importers:
 
   packages/stories:
     dependencies:
+      '@lifo-sh/kernel':
+        specifier: file:../../../kernel/packages/kernel
+        version: file:../kernel/packages/kernel(@lifo-sh/node-compat@packages+node-compat)
       '@lifo-sh/node-compat':
         specifier: workspace:*
         version: link:../node-compat
-      '@lifo-sh/vfs':
-        specifier: file:../../../lifo-vfs/packages/vfs
-        version: file:../lifo-vfs/packages/vfs
     devDependencies:
       '@vitest/browser':
         specifier: ^3.2.1
@@ -71,12 +71,12 @@ importers:
 
   packages/vite-react-app:
     dependencies:
+      '@lifo-sh/kernel':
+        specifier: file:../../../kernel/packages/kernel
+        version: file:../kernel/packages/kernel(@lifo-sh/node-compat@packages+node-compat)
       '@lifo-sh/node-compat':
         specifier: workspace:*
         version: link:../node-compat
-      '@lifo-sh/vfs':
-        specifier: file:../../../lifo-vfs/packages/vfs
-        version: file:../lifo-vfs/packages/vfs
       '@tailwindcss/vite':
         specifier: ^4.2.1
         version: 4.2.1(vite@7.3.1(@types/node@24.12.0)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))
@@ -594,8 +594,24 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@lifo-sh/vfs@file:../lifo-vfs/packages/vfs':
-    resolution: {directory: ../lifo-vfs/packages/vfs, type: directory}
+  '@lifo-sh/kernel@0.1.9':
+    resolution: {integrity: sha512-3N5Vwa0FivQ+BgAfP2KOdm73IUsV99lnMGLIk0fbmcX6TFdzCJKHCh+LPxng4LBzZ2UYuXuuWw+GLVq6RMq38Q==}
+    peerDependencies:
+      '@lifo-sh/node-compat': '>=0.1.0'
+    peerDependenciesMeta:
+      '@lifo-sh/node-compat':
+        optional: true
+
+  '@lifo-sh/kernel@file:../kernel/packages/kernel':
+    resolution: {directory: ../kernel/packages/kernel, type: directory}
+    peerDependencies:
+      '@lifo-sh/node-compat': '>=0.1.0'
+    peerDependenciesMeta:
+      '@lifo-sh/node-compat':
+        optional: true
+
+  '@lifo-sh/node-compat@0.1.11':
+    resolution: {integrity: sha512-U1E8jRiiiHl7lzaI9nddym+nr/1aNPt3sObmA1f6NDYwd1XD3Vp67XD44kAlg+w9UVrcQGzmj2iWJ+OAYKTn+g==}
 
   '@modelcontextprotocol/sdk@1.27.1':
     resolution: {integrity: sha512-sr6GbP+4edBwFndLbM60gf07z0FQ79gaExpnsjMGePXqFcSSb7t6iscpjk9DhFhwd+mTEQrzNafGP8/iGGFYaA==}
@@ -4115,7 +4131,19 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@lifo-sh/vfs@file:../lifo-vfs/packages/vfs': {}
+  '@lifo-sh/kernel@0.1.9(@lifo-sh/node-compat@0.1.11)':
+    optionalDependencies:
+      '@lifo-sh/node-compat': 0.1.11
+
+  '@lifo-sh/kernel@file:../kernel/packages/kernel(@lifo-sh/node-compat@packages+node-compat)':
+    optionalDependencies:
+      '@lifo-sh/node-compat': link:packages/node-compat
+
+  '@lifo-sh/node-compat@0.1.11':
+    dependencies:
+      '@lifo-sh/kernel': 0.1.9(@lifo-sh/node-compat@0.1.11)
+      picomatch: 4.0.3
+    optional: true
 
   '@modelcontextprotocol/sdk@1.27.1(zod@3.25.76)':
     dependencies:

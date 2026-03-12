@@ -1,6 +1,8 @@
 import { EventEmitter } from './events.js';
 import type { IKernelProcessAPI, ChildProcessHandle } from '@lifo-sh/kernel/types';
 
+export const ACTIVE_CHILD_PROCESSES = Symbol.for('lifo:activeChildProcesses');
+
 type ExecuteCapture = (input: string) => Promise<string>;
 
 /**
@@ -9,6 +11,9 @@ type ExecuteCapture = (input: string) => Promise<string>;
  * Falls back to executeCapture for basic spawn/exec support.
  */
 export function createChildProcess(executeCapture?: ExecuteCapture, processAPI?: IKernelProcessAPI) {
+
+  // Track active child processes so the node command can wait for them
+  const activeChildren: EventEmitter[] = [];
 
   function exec(
     cmd: string,
@@ -139,6 +144,8 @@ export function createChildProcess(executeCapture?: ExecuteCapture, processAPI?:
 
       handle.on('exit', (code: number) => {
         child.exitCode = code;
+        const idx = activeChildren.indexOf(child);
+        if (idx >= 0) activeChildren.splice(idx, 1);
         child.emit('exit', code, null);
         child.emit('close', code, null);
       });
@@ -147,6 +154,7 @@ export function createChildProcess(executeCapture?: ExecuteCapture, processAPI?:
         child.emit('error', err);
       });
 
+      activeChildren.push(child);
       return child;
     }
 
@@ -201,5 +209,7 @@ export function createChildProcess(executeCapture?: ExecuteCapture, processAPI?:
     return spawn('node', [modulePath, ...args], options);
   }
 
-  return { exec, execSync, spawn, spawnSync, fork };
+  const mod: Record<string | symbol, unknown> = { exec, execSync, spawn, spawnSync, fork };
+  mod[ACTIVE_CHILD_PROCESSES] = activeChildren;
+  return mod;
 }

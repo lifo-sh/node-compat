@@ -197,3 +197,13 @@ export function createProcess(opts: ProcessOptions) {
 
   return proc;
 }
+
+const noopStream: CommandOutputStream = { write: () => {} };
+
+export default createProcess({
+  argv: [],
+  env: {},
+  cwd: '/',
+  stdout: noopStream,
+  stderr: noopStream,
+});

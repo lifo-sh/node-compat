@@ -16,6 +16,7 @@ export default defineConfig({
     "src/crypto.ts",
     "src/http.ts",
     "src/console.ts",
+    "src/assert.ts",
     "src/child_process.ts",
     "src/module.ts",
     "src/rimraf.ts",

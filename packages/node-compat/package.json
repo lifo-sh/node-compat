@@ -1,6 +1,6 @@
 {
   "name": "@lifo-sh/node-compat",
-  "version": "0.1.8",
+  "version": "0.1.13",
   "description": "Node.js API compatibility layer for browsers",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -76,6 +76,11 @@
       "types": "./dist/console.d.ts",
       "import": "./dist/console.js",
       "require": "./dist/console.cjs"
+    },
+    "./assert": {
+      "types": "./dist/assert.d.ts",
+      "import": "./dist/assert.js",
+      "require": "./dist/assert.cjs"
     },
     "./child_process": {
       "types": "./dist/child_process.d.ts",
