@@ -35,6 +35,7 @@ export interface NodeContext {
   stdout: CommandOutputStream;
   stderr: CommandOutputStream;
   stdin?: CommandInputStream;
+  setRawMode?: (enabled: boolean) => void;
   argv: string[];
   filename: string;
   dirname: string;
@@ -53,6 +54,7 @@ export function createModuleMap(ctx: NodeContext): Record<string, () => unknown>
     stdout: ctx.stdout,
     stderr: ctx.stderr,
     stdin: ctx.stdin,
+    setRawMode: ctx.setRawMode,
     vfs: ctx.vfs,
   });
 

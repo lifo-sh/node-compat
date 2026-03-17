@@ -21,10 +21,11 @@ export interface ProcessOptions {
   stdout: CommandOutputStream;
   stderr: CommandOutputStream;
   stdin?: CommandInputStream;
+  setRawMode?: (enabled: boolean) => void;
   vfs?: any;  // Optional VFS for path validation
 }
 
-function createStdin(stdin?: CommandInputStream) {
+function createStdin(stdin?: CommandInputStream, setRawModeFn?: (enabled: boolean) => void) {
   const listeners: Record<string, Array<(...args: unknown[]) => void>> = {};
   let reading = false;
   let paused = true;
@@ -83,7 +84,10 @@ function createStdin(stdin?: CommandInputStream) {
     },
     setEncoding: () => stdinObj,
     read: () => null,
-    setRawMode: () => stdinObj,
+    setRawMode: (mode: boolean) => {
+      if (setRawModeFn) setRawModeFn(mode);
+      return stdinObj;
+    },
     addListener: (event: string, cb: (...args: unknown[]) => void) => stdinObj.on(event, cb),
     emit: (event: string, ...args: unknown[]) => { emit(event, ...args); return true; },
     ref: () => stdinObj,
@@ -147,7 +151,7 @@ export function createProcess(opts: ProcessOptions) {
       on: () => {},
       once: () => {},
     },
-    stdin: createStdin(opts.stdin),
+    stdin: createStdin(opts.stdin, opts.setRawMode),
     platform: 'linux' as string,
     arch: 'x64' as string,
     version: 'v22.14.0',
