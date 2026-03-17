@@ -90,6 +90,8 @@ function createStdin(stdin?: CommandInputStream, setRawModeFn?: (enabled: boolea
     },
     addListener: (event: string, cb: (...args: unknown[]) => void) => stdinObj.on(event, cb),
     emit: (event: string, ...args: unknown[]) => { emit(event, ...args); return true; },
+    pipe: () => stdinObj,
+    unpipe: () => stdinObj,
     ref: () => stdinObj,
     unref: () => stdinObj,
   };
@@ -133,24 +135,44 @@ export function createProcess(opts: ProcessOptions) {
       }
       throw new ProcessExitError(code);
     },
-    stdout: {
-      write: (data: string) => { opts.stdout.write(data); return true; },
-      isTTY: false,
-      fd: 1,
-      bytesWritten: 0,
-      columns: 80,
-      on: () => {},
-      once: () => {},
-    },
-    stderr: {
-      write: (data: string) => { opts.stderr.write(data); return true; },
-      isTTY: false,
-      fd: 2,
-      bytesWritten: 0,
-      columns: 80,
-      on: () => {},
-      once: () => {},
-    },
+    stdout: (() => {
+      const stdoutListeners: Record<string, Array<(...args: unknown[]) => void>> = {};
+      const stdoutObj = {
+        write: (data: string) => { opts.stdout.write(data); return true; },
+        isTTY: true,
+        fd: 1,
+        bytesWritten: 0,
+        columns: 80,
+        rows: 24,
+        on: (event: string, cb: (...args: unknown[]) => void) => { if (!stdoutListeners[event]) stdoutListeners[event] = []; stdoutListeners[event].push(cb); return stdoutObj; },
+        once: (event: string, cb: (...args: unknown[]) => void) => { const wrapped = (...args: unknown[]) => { stdoutObj.off(event, wrapped); cb(...args); }; return stdoutObj.on(event, wrapped); },
+        off: (event: string, cb: (...args: unknown[]) => void) => { if (stdoutListeners[event]) stdoutListeners[event] = stdoutListeners[event].filter(f => f !== cb); return stdoutObj; },
+        removeListener: (event: string, cb: (...args: unknown[]) => void) => stdoutObj.off(event, cb),
+        addListener: (event: string, cb: (...args: unknown[]) => void) => stdoutObj.on(event, cb),
+        emit: (event: string, ...args: unknown[]) => { const fns = stdoutListeners[event]; if (fns) for (const fn of [...fns]) fn(...args); return !!fns?.length; },
+        removeAllListeners: (event?: string) => { if (event) delete stdoutListeners[event]; else Object.keys(stdoutListeners).forEach(k => delete stdoutListeners[k]); return stdoutObj; },
+      };
+      return stdoutObj;
+    })(),
+    stderr: (() => {
+      const stderrListeners: Record<string, Array<(...args: unknown[]) => void>> = {};
+      const stderrObj = {
+        write: (data: string) => { opts.stderr.write(data); return true; },
+        isTTY: true,
+        fd: 2,
+        bytesWritten: 0,
+        columns: 80,
+        rows: 24,
+        on: (event: string, cb: (...args: unknown[]) => void) => { if (!stderrListeners[event]) stderrListeners[event] = []; stderrListeners[event].push(cb); return stderrObj; },
+        once: (event: string, cb: (...args: unknown[]) => void) => { const wrapped = (...args: unknown[]) => { stderrObj.off(event, wrapped); cb(...args); }; return stderrObj.on(event, wrapped); },
+        off: (event: string, cb: (...args: unknown[]) => void) => { if (stderrListeners[event]) stderrListeners[event] = stderrListeners[event].filter(f => f !== cb); return stderrObj; },
+        removeListener: (event: string, cb: (...args: unknown[]) => void) => stderrObj.off(event, cb),
+        addListener: (event: string, cb: (...args: unknown[]) => void) => stderrObj.on(event, cb),
+        emit: (event: string, ...args: unknown[]) => { const fns = stderrListeners[event]; if (fns) for (const fn of [...fns]) fn(...args); return !!fns?.length; },
+        removeAllListeners: (event?: string) => { if (event) delete stderrListeners[event]; else Object.keys(stderrListeners).forEach(k => delete stderrListeners[k]); return stderrObj; },
+      };
+      return stderrObj;
+    })(),
     stdin: createStdin(opts.stdin, opts.setRawMode),
     platform: 'linux' as string,
     arch: 'x64' as string,
