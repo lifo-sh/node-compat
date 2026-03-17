@@ -25,12 +25,16 @@ import { createRollupNative } from './rollup-native.js';
 import assertModule from './assert.js';
 import picomatch from 'picomatch';
 
+export type { CommandInputStream } from './process.js';
+import type { CommandInputStream } from './process.js';
+
 export interface NodeContext {
   vfs: IKernelVfs;
   cwd: string | (() => string);  // Support dynamic cwd for process.chdir()
   env: Record<string, string>;
   stdout: CommandOutputStream;
   stderr: CommandOutputStream;
+  stdin?: CommandInputStream;
   argv: string[];
   filename: string;
   dirname: string;
@@ -48,6 +52,7 @@ export function createModuleMap(ctx: NodeContext): Record<string, () => unknown>
     cwd: ctx.cwd,
     stdout: ctx.stdout,
     stderr: ctx.stderr,
+    stdin: ctx.stdin,
     vfs: ctx.vfs,
   });
 

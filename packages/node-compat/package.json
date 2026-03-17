@@ -1,6 +1,6 @@
 {
   "name": "@lifo-sh/node-compat",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Node.js API compatibility layer for browsers",
   "type": "module",
   "main": "./dist/index.cjs",

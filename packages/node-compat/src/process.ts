@@ -1,5 +1,10 @@
 import type { CommandOutputStream } from './types.js';
 
+export interface CommandInputStream {
+  read(): Promise<string | null>;   // null = EOF
+  readAll(): Promise<string>;
+}
+
 export class ProcessExitError extends Error {
   exitCode: number;
   constructor(code: number) {
@@ -15,7 +20,77 @@ export interface ProcessOptions {
   cwd: string | (() => string);  // Support dynamic cwd
   stdout: CommandOutputStream;
   stderr: CommandOutputStream;
+  stdin?: CommandInputStream;
   vfs?: any;  // Optional VFS for path validation
+}
+
+function createStdin(stdin?: CommandInputStream) {
+  const listeners: Record<string, Array<(...args: unknown[]) => void>> = {};
+  let reading = false;
+  let paused = true;
+
+  function emit(event: string, ...args: unknown[]) {
+    const fns = listeners[event];
+    if (fns) for (const fn of [...fns]) fn(...args);
+  }
+
+  async function startReading() {
+    if (reading || !stdin) return;
+    reading = true;
+    paused = false;
+    while (!paused) {
+      const data = await stdin.read();
+      if (data === null) {
+        emit('end');
+        break;
+      }
+      emit('data', data);
+    }
+    reading = false;
+  }
+
+  const stdinObj = {
+    isTTY: !!stdin,
+    fd: 0,
+    on: (event: string, cb: (...args: unknown[]) => void) => {
+      if (!listeners[event]) listeners[event] = [];
+      listeners[event].push(cb);
+      // Auto-start reading when a 'data' listener is added
+      if (event === 'data' && stdin) startReading();
+      return stdinObj;
+    },
+    once: (event: string, cb: (...args: unknown[]) => void) => {
+      const wrapped = (...args: unknown[]) => {
+        stdinObj.removeListener(event, wrapped);
+        cb(...args);
+      };
+      return stdinObj.on(event, wrapped);
+    },
+    removeListener: (event: string, cb: (...args: unknown[]) => void) => {
+      if (listeners[event]) {
+        listeners[event] = listeners[event].filter(f => f !== cb);
+      }
+      return stdinObj;
+    },
+    off: (event: string, cb: (...args: unknown[]) => void) => stdinObj.removeListener(event, cb),
+    resume: () => {
+      if (stdin && paused) startReading();
+      return stdinObj;
+    },
+    pause: () => {
+      paused = true;
+      return stdinObj;
+    },
+    setEncoding: () => stdinObj,
+    read: () => null,
+    setRawMode: () => stdinObj,
+    addListener: (event: string, cb: (...args: unknown[]) => void) => stdinObj.on(event, cb),
+    emit: (event: string, ...args: unknown[]) => { emit(event, ...args); return true; },
+    ref: () => stdinObj,
+    unref: () => stdinObj,
+  };
+
+  return stdinObj;
 }
 
 export function createProcess(opts: ProcessOptions) {
@@ -72,16 +147,7 @@ export function createProcess(opts: ProcessOptions) {
       on: () => {},
       once: () => {},
     },
-    stdin: {
-      isTTY: false,
-      fd: 0,
-      on: () => {},
-      once: () => {},
-      resume: () => {},
-      pause: () => {},
-      setEncoding: () => {},
-      read: () => null,
-    },
+    stdin: createStdin(opts.stdin),
     platform: 'linux' as string,
     arch: 'x64' as string,
     version: 'v22.14.0',
